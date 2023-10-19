@@ -1,0 +1,12 @@
+{
+  "name": "node-api",
+  "packageManager": "yarn@4.0.0-rc.53",
+  "dependencies": {
+    "@types/node": "^16.11.16",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.51.0",
+    "typescript": "^5.2.2"
+  }
+}
