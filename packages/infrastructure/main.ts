@@ -3,18 +3,20 @@ import { App, Chart, ChartProps } from "cdk8s";
 import { Rollout } from "./imports/argoproj.io";
 import { KubeNamespace, KubeService } from "./imports/k8s";
 
+
+const environment = process.env.ENVIRONMENT ?? "dev";
+
+
 export class MyChart extends Chart {
   constructor(
     scope: Construct,
     id: string,
-    props: ChartProps = {
-      namespace: "node-api",
-    },
+    props: ChartProps
   ) {
     super(scope, id, props);
 
     new KubeNamespace(this, "namespace", {
-      metadata: { name: "node-api" },
+      metadata: { name: `node-api-${environment}` },
     });
 
     new Rollout(this, "deployment", {
@@ -103,5 +105,7 @@ export class MyChart extends Chart {
 }
 
 const app = new App();
-new MyChart(app, "infrastructure");
+new MyChart(app, "infrastructure", {
+   namespace: `node-api-${environment}`,
+});
 app.synth();
