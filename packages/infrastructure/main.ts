@@ -1,53 +1,107 @@
-import { Construct } from 'constructs';
-import { App, Chart, ChartProps, Size } from 'cdk8s';
-import { Cpu, Deployment, Namespace, Node, NodeLabelQuery } from 'cdk8s-plus-27';
+import { Construct } from "constructs";
+import { App, Chart, ChartProps } from "cdk8s";
+import { Rollout } from "./imports/argoproj.io";
+import { KubeNamespace, KubeService } from "./imports/k8s";
 
 export class MyChart extends Chart {
-  constructor(scope: Construct, id: string, props: ChartProps = { 
-    namespace: "node-api"
-  }) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: ChartProps = {
+      namespace: "node-api",
+    },
+  ) {
     super(scope, id, props);
 
-    new Namespace(this, 'namespace', {
-      metadata: {name:"node-api"}
+    new KubeNamespace(this, "namespace", {
+      metadata: { name: "node-api" },
     });
 
-    const deployment = new Deployment(this, 'deployment', {
-      replicas: 1,
-      securityContext: {
-        ensureNonRoot: false,
+    new Rollout(this, "deployment", {
+      metadata: {
+        name: "node-api",
       },
-      
-      containers: [
-        {
-          securityContext: {
-            ensureNonRoot: false,
+      spec: {
+        replicas: 1,
+        strategy: {
+          blueGreen: {
+            activeService: "node-api-active",
+            previewService: "node-api-preview",
+            autoPromotionEnabled: false,
           },
-          image: "gkaskonas/node-api:v1",
-          ports: [
-            {
-              number: 8080,
-              name: 'http'
-            }
-          ],
-          resources: {
-            cpu: {
-              request: Cpu.millis(100)
+        },
+        selector: {
+          matchLabels: {
+            app: "node-api",
+          },
+        },
+        template: {
+          metadata: {
+            labels: {
+              app: "node-api",
             },
-            memory: {
-              request: Size.mebibytes(100)
-            }
-          }
-        }
-      ]
-  });
+          },
+          spec: {
+            nodeSelector: {
+              nodetype: "worker",
+            },
+            containers: [
+              {
+                name: "node-api",
+                image: "gkaskonas/node-api:v2",
+                ports: [{ containerPort: 3000 }],
+                resources: {
+                  requests: {
+                    cpu: "100m",
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
 
-  deployment.exposeViaService({});
+    new KubeService(this, "active-service", {
+      metadata: {
+        name: "node-api-active",
+        labels: {
+          app: "node-api",
+        },
+      },
+      spec: {
+        selector: {
+          app: "node-api",
+        },
+        ports: [
+          {
+            port: 3000,
+          },
+        ],
+      },
+    });
 
-  deployment.scheduling.attract(Node.labeled(NodeLabelQuery.is("nodetype", "worker")))
-}
+    new KubeService(this, "preview-service", {
+      metadata: {
+        name: "node-api-preview",
+        labels: {
+          app: "node-api",
+        },
+      },
+      spec: {
+        selector: {
+          app: "node-api",
+        },
+        ports: [
+          {
+            port: 3000,
+          },
+        ],
+      },
+    });
+  }
 }
 
 const app = new App();
-new MyChart(app, 'infrastructure');
+new MyChart(app, "infrastructure");
 app.synth();

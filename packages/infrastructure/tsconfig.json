@@ -5,9 +5,7 @@
     "experimentalDecorators": true,
     "inlineSourceMap": true,
     "inlineSources": true,
-    "lib": [
-      "es2016"
-    ],
+    "lib": ["es2016"],
     "module": "CommonJS",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
@@ -24,11 +22,6 @@
     "target": "ES2017",
     "outDir": "dist"
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }

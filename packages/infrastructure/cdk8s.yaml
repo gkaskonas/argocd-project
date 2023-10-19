@@ -2,3 +2,4 @@ language: typescript
 app: ts-node main.ts
 imports:
   - k8s
+  - rollout-crd.yaml
