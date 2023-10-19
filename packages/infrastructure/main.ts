@@ -4,7 +4,7 @@ import { Rollout } from "./imports/argoproj.io";
 import { KubeNamespace, KubeService } from "./imports/k8s";
 
 
-const environment = process.env.ENVIRONMENT ?? "dev";
+const environment = process.env.ARGOCD_ENV_ENVIRONMENT ?? "dev";
 
 
 export class MyChart extends Chart {
